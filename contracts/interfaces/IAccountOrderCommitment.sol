@@ -14,4 +14,9 @@ interface IAccountOrderCommitment {
         uint256 opIndex,
         bytes32 orderCommitmentHash
     ) external;
+
+    event OrderCommitmentNotified(
+        uint256 indexed opIndex,
+        bytes32 indexed orderCommitmentHash
+    );
 }
