@@ -6,6 +6,7 @@ pragma solidity ^0.8.28;
 /* solhint-disable no-inline-assembly */
 
 import "../interfaces/IAccount.sol";
+import "../interfaces/IAccountOrderCommitment.sol";
 import "../interfaces/IEntryPoint.sol";
 import "../utils/Exec.sol";
 import "./UserOperationLib.sol";
@@ -15,7 +16,7 @@ import "./UserOperationLib.sol";
  * This contract provides the basic logic for implementing the IAccount interface - validateUserOp
  * Specific account implementation should inherit it and provide the account-specific logic.
  */
-abstract contract BaseAccount is IAccount {
+abstract contract BaseAccount is IAccount, IAccountOrderCommitment {
     using UserOperationLib for PackedUserOperation;
 
     struct Call {
@@ -75,6 +76,15 @@ abstract contract BaseAccount is IAccount {
                 }
             }
         }
+    }
+
+    /// @inheritdoc IAccountOrderCommitment
+    function notifyOrderCommitment(
+        uint256 opIndex,
+        bytes32 orderCommitmentHash
+    ) external virtual override {
+        _requireFromEntryPoint();
+        emit OrderCommitmentNotified(opIndex, orderCommitmentHash);
     }
 
     /// @inheritdoc IAccount
