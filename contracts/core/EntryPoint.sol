@@ -7,6 +7,7 @@ pragma solidity ^0.8.28;
 
 import "../interfaces/IAccount.sol";
 import "../interfaces/IAccountExecute.sol";
+import "../interfaces/IAccountOrderCommitment.sol";
 import "../interfaces/IEntryPoint.sol";
 import "../interfaces/IPaymaster.sol";
 
@@ -60,6 +61,8 @@ contract EntryPoint is IEntryPoint, StakeManager, NonceManager, ERC165, EIP712 {
 
     bytes32 transient private currentUserOpHash;
 
+    mapping(bytes32 => bool exists) public committedBundles;
+
     error Reentrancy();
 
     constructor() EIP712(DOMAIN_NAME, DOMAIN_VERSION)  {
@@ -74,6 +77,20 @@ contract EntryPoint is IEntryPoint, StakeManager, NonceManager, ERC165, EIP712 {
         _;
     }
 
+    /** 
+    * @param bundleRootHash The root hash of the committed ordered bundle
+    * @param senders The list of sender addresses (smart wallets) which the user ops belong to
+    */
+    function commitOrder(address[] memory senders,bytes32 bundleRootHash) external {
+        committedBundles[bundleRootHash] = true;
+        uint256 sendersLen = senders.length;
+
+        for (uint256 i = 0; i < sendersLen; i++) {
+            // a revert in callee will revert the entire loop
+            IAccountOrderCommitment(senders[i]).notifyOrderCommitment(i, bundleRootHash);
+        }
+
+    }
     /// @inheritdoc IEntryPoint
     function handleOps(
         PackedUserOperation[] calldata ops,
