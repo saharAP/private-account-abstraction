@@ -168,6 +168,9 @@ interface IEntryPoint is IStakeManager, INonceManager {
     // Return value of getSenderAddress.
     error SenderAddressResult(address sender);
 
+    // Bundle commitment is invalid.
+    error InvalidBundleCommitment(address bundler,bytes32 InvalidBundleCommitment);
+
     // UserOps handled, per aggregator.
     struct UserOpsPerAggregator {
         PackedUserOperation[] userOps;
@@ -189,7 +192,7 @@ interface IEntryPoint is IStakeManager, INonceManager {
         PackedUserOperation[] calldata ops,
         address payable beneficiary
     ) external;
-
+    
     /**
      * Execute a batch of UserOperation with Aggregators
      * @param opsPerAggregator - The operations to execute, grouped by aggregator (or address(0) for no-aggregator accounts).

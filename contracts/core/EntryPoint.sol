@@ -91,6 +91,7 @@ contract EntryPoint is IEntryPoint, StakeManager, NonceManager, ERC165, EIP712 {
         }
 
     }
+
     /// @inheritdoc IEntryPoint
     function handleOps(
         PackedUserOperation[] calldata ops,
@@ -368,6 +369,7 @@ contract EntryPoint is IEntryPoint, StakeManager, NonceManager, ERC165, EIP712 {
     ) internal virtual returns (uint256 opsLen){
         unchecked {
             opsLen = ops.length;
+            bytes32 previousOpHash = bytes32(0);
             for (uint256 i = 0; i < opsLen; i++) {
                 UserOpInfo memory opInfo = opInfos[opIndexOffset + i];
                 (
@@ -380,7 +382,14 @@ contract EntryPoint is IEntryPoint, StakeManager, NonceManager, ERC165, EIP712 {
                     pmValidationData,
                     expectedAggregator
                 );
+                previousOpHash = keccak256(abi.encodePacked(previousOpHash, opInfo.userOpHash));
             }
+            // The final previousHash is the bundle root hash
+            if (!committedBundles[previousOpHash]) {
+                // msg.sender supposed to be the bundler EOA address who committed this invalid bundle root hash earlier
+                revert InvalidBundleCommitment(msg.sender, previousOpHash);
+            }
+            committedBundles[previousOpHash] = false;
         }
     }
 
