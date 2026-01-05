@@ -81,7 +81,7 @@ contract EntryPoint is IEntryPoint, StakeManager, NonceManager, ERC165, EIP712 {
     * @param bundleRootHash The root hash of the committed ordered bundle
     * @param senders The list of sender addresses (smart wallets) which the user ops belong to
     */
-    function commitOrder(address[] memory senders,bytes32 bundleRootHash) external {
+    function commitOrder(address[] memory senders,bytes32 bundleRootHash) external nonReentrant{
         committedBundles[bundleRootHash] = true;
         uint256 sendersLen = senders.length;
 
